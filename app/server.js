@@ -3,6 +3,7 @@ const session = require('express-session');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -17,14 +18,51 @@ app.use(session({
 }));
 
 // Conexión a Base de Datos leyendo variables de entorno
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 5432,
-  connectionString: process.env.DATABASE_URL // Utilizado por Blitz Cloud (Opción A)
-});
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL }
+    : {
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT || 5432
+      }
+);
+
+// Inicialización de la Base de Datos
+async function initDB() {
+  try {
+    // 1. Crear tabla si no existe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        full_name VARCHAR(100) NOT NULL
+      );
+    `);
+
+    // 2. Generar hashes reales para las contraseñas
+    const hashAdmin = await bcrypt.hash('admin123', 10);
+    const hashUser1 = await bcrypt.hash('user123', 10);
+
+    // 3. Actualizar o insertar los usuarios con los hashes válidos
+    await pool.query(`
+      INSERT INTO users (username, password_hash, full_name)
+      VALUES 
+        ('admin', $1, 'Administrador del Sistema'),
+        ('usuario1', $2, 'Juan Pérez')
+      ON CONFLICT (username) 
+      DO UPDATE SET password_hash = EXCLUDED.password_hash;
+    `, [hashAdmin, hashUser1]);
+
+    console.log('Base de datos inicializada y contraseñas actualizadas correctamente');
+  } catch (err) {
+    console.error('Error al inicializar la base de datos:', err.message);
+  }
+}
+initDB();
 
 // Middleware de Autenticación
 function requireAuth(req, res, next) {
