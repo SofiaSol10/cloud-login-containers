@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crear cuenta</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f4f4f9; }
+    form { box-sizing: border-box; width: min(100% - 2rem, 360px); padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    input { box-sizing: border-box; width: 100%; padding: 0.65rem; margin: 0.5rem 0 1rem; }
+    button { width: 100%; padding: 0.65rem; color: white; background: #007bff; border: 0; border-radius: 4px; cursor: pointer; }
+    .error { min-height: 1.25rem; color: #b42318; }
+  </style>
+</head>
+<body>
+  <form action="/register" method="POST">
+    <h1>Crear cuenta</h1>
+    <div id="error" class="error" role="alert"></div>
+    <label for="full_name">Nombre completo</label>
+    <input id="full_name" type="text" name="full_name" maxlength="100" autocomplete="name" required>
+    <label for="username">Usuario</label>
+    <input id="username" type="text" name="username" minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]+" autocomplete="username" required>
+    <label for="password">Contraseña (mínimo 8 caracteres)</label>
+    <input id="password" type="password" name="password" minlength="8" autocomplete="new-password" required>
+    <button type="submit">Crear cuenta</button>
+    <p><a href="/">Volver al inicio de sesión</a></p>
+  </form>
+  <script>
+    const messages = {
+      invalid: 'Revisa los datos: usuario de 3 a 50 caracteres, nombre obligatorio y contraseña de al menos 8 caracteres.',
+      exists: 'Ese nombre de usuario ya está registrado.',
+      server: 'No se pudo crear la cuenta. Revisa la conexión con la base de datos e inténtalo de nuevo.'
+    };
+    const error = new URLSearchParams(window.location.search).get('error');
+    document.getElementById('error').innerText = messages[error] || '';
+  </script>
+</body>
+</html>
