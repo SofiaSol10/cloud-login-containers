@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Bienvenido</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #eef9f2; }
+    .card { background: white; padding: 2rem; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    a { display: inline-block; margin-top: 1rem; color: #dc3545; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="greeting">Bienvenido</h1>
+    <p>Has accedido exitosamente a la zona protegida de la aplicación.</p>
+    <a href="/logout">Cerrar Sesión</a>
+  </div>
+  <script>
+    fetch('/api/user')
+      .then(res => res.json())
+      .then(data => {
+        if(data.user) {
+          document.getElementById('greeting').innerText = `¡Bienvenido, ${data.user.full_name}!`;
+        }
+      });
+  </script>
+</body>
+</html>
